@@ -29,7 +29,8 @@ class Calc():
         return len(stack) == 0
         
     def eval(self, exp: str)-> str:
-        self.validate_expression(exp)
+        valid = self.validate_expression(exp)
+
         tokens = Calc.tokenizer(self,exp)
         
         stack = []
@@ -84,9 +85,27 @@ class Calc():
         else: raise ValueError(f"Unsupported unary operator: {operator}")
 
     def validate_expression(self, exp: str):
-        pattern = r'^(?:\s*-?(?:\d*\.\d+|\d+)\s*|[()+\-*/]\s*)+$'
 
-        if re.fullmatch(pattern, exp) == False:
-            raise ValueError(f"Invalid symbol in expression")
-        elif self.is_valid_parentheses(exp) == False:
+        exp = exp.replace(" ", "")
+
+        full_pattern = r'^(?:-?(?:\d*\.\d+|\d+)|[()+\-*/])+$'
+
+        if re.fullmatch(full_pattern, exp) is None:
+            raise ValueError("Invalid symbol in expression")
+
+        if not self.is_valid_parentheses(exp):
             raise ValueError("Invalid parentheses in expression")
+
+        if re.search(r'[+\-*/]{2,}', exp):
+            raise ValueError("Invalid operator sequence")
+
+
+if __name__ == "__main__":
+    calc = Calc()
+    expression = "(3 +  (2 -(5 + 4) + (5 * 2) - 1) - 7) / 8"
+    
+    try:
+        result = calc.eval(expression)
+        print("Результат:", result)
+    except Exception as e:
+        print("Ошибка:", e)
