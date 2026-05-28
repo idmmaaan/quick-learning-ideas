@@ -1,9 +1,5 @@
-import sys
-import math
-from typing import Optional
-
 class Calc():
-
+    
     OP_MAP = {
         "+": lambda a, b: a + b,
         "-": lambda a, b: a - b,
@@ -11,76 +7,80 @@ class Calc():
         "/": lambda a, b: a / b
     }
 
-    __PARENTHESES_MAPPING = {
+    PARENTHESES_MAPPING = {
         '{' : '}',
         '[' : ']',
         '(' : ')'
     }
-
+    
     def isValidParentheses(self, s: str) -> bool:
         stack = []
         
         for char in s:
-            if char in self.__PARENTHESES_MAPPING:
+            if char in self.PARENTHESES_MAPPING:
                 stack.append(char)
                 
-            elif char in self.__PARENTHESES_MAPPING.values():
-                if stack and self.__PARENTHESES_MAPPING[stack[-1]] == char:
+            elif char in self.PARENTHESES_MAPPING.values():
+                if stack and self.PARENTHESES_MAPPING[stack[-1]] == char:
                     stack.pop() 
                 else:
                     return False
                 
         return len(stack) == 0
         
-    def eval(exp: str)-> str:
+    def eval(self, exp: str)-> str:
         
-        if not Calc.isValidParentheses(Calc, exp):
+        if not Calc.isValidParentheses(self, exp):
             raise ValueError("Invalid parentheses in expression")
 
-        result = 0
-        exprassion = Calc.find_operands(exp)
-
-        for item in exprassion:
-            operand_a = item[0]
-            operand_b = item[1]
-            operator = item[2]
-            result += Calc.OP_MAP[operator](int(operand_a), int(operand_b))
+        tokens = Calc.tokenizer(self,exp)
         
-        return str(result)
+        stack = []
 
-    def find_operands(exp: str)-> list[int | str]:
+        for i in tokens:
+            if i.isdigit():
+                stack.append(float(i))
+            else:
+                operand_b = stack.pop()
+                operand_a = stack.pop()
+                stack.append(self.OP_MAP[i](operand_a, operand_b))
+
+        
+        return stack.pop()
+
+    def tokenizer(self, exp: str)-> list[str]:
         exp = exp.replace(" ", "").strip()
-        result = []
 
-        for key, token in enumerate(exp):
-             if token in Calc.OP_MAP and key > 0 and key < len(exp) - 1:
-                item = []
-                left = 0
-                right = 0
+        operators = []
+        operands = []
+        
+        for token in exp:
+            if token.isdigit():
+                operands.append(token)
+            elif token == '(':
+                operators.append(token)
+            elif token == ')':
+                while operators and operators[-1] != '(':
+                    operands.append(operators.pop())
+                if operators:
+                    operators.pop()
+            elif token in self.OP_MAP:
+                while operators and operators[-1] != '(' and operators[-1] in self.OP_MAP:
+                    if self.operator_priority(self, token) <= self.operator_priority(self, operators[-1]):
+                        operands.append(operators.pop())
+                    else:
+                        break
+                operators.append(token)
+        
+        while operators:
+            operands.append(operators.pop()) 
+        
 
-                if exp[key - 1].isdigit():
-                    left = exp[key - 1]
+        return operands
 
-                left = exp[key - 1]
-                op = token
-
-                if exp[key + 1].isdigit():
-                    right = exp[key + 1]
-
-                right = exp[key + 1]
-                item.append(left)
-                item.append(right)
-                item.append(op)
-                result.append(item)
-
-        return result
-    
-    def check_operator(operator: str) -> str:
-        if operator in Calc.OP_MAP:
-            return operator
+    def operator_priority(self, operator: str) -> int:
+        if operator in ("*", "/"):
+            return 2
+        elif operator in ("+", "-"):
+            return 1
         else: raise ValueError(f"Unsupported unary operator: {operator}")
-
-
-if __name__ == "__main__":
-  
-    print(Calc.eval("(3 + 4) + 5"))
