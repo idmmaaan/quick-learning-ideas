@@ -98,14 +98,3 @@ class Calc():
 
         if re.search(r'[+\-*/]{2,}', exp):
             raise ValueError("Invalid operator sequence")
-
-
-if __name__ == "__main__":
-    calc = Calc()
-    expression = "(3 +  (2 -(5 + 4) + (5 * 2) - 1) - 7) / 8"
-    
-    try:
-        result = calc.eval(expression)
-        print("Результат:", result)
-    except Exception as e:
-        print("Ошибка:", e)
