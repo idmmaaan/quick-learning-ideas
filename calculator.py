@@ -1,3 +1,5 @@
+import re
+
 class Calc():
     
     OP_MAP = {
@@ -8,12 +10,10 @@ class Calc():
     }
 
     PARENTHESES_MAPPING = {
-        '{' : '}',
-        '[' : ']',
         '(' : ')'
     }
     
-    def isValidParentheses(self, s: str) -> bool:
+    def is_valid_parentheses(self, s: str) -> bool:
         stack = []
         
         for char in s:
@@ -29,10 +29,7 @@ class Calc():
         return len(stack) == 0
         
     def eval(self, exp: str)-> str:
-        
-        if not Calc.isValidParentheses(self, exp):
-            raise ValueError("Invalid parentheses in expression")
-
+        self.validate_expression(exp)
         tokens = Calc.tokenizer(self,exp)
         
         stack = []
@@ -55,6 +52,7 @@ class Calc():
         operands = []
         
         for token in exp:
+
             if token.isdigit():
                 operands.append(token)
             elif token == '(':
@@ -66,7 +64,7 @@ class Calc():
                     operators.pop()
             elif token in self.OP_MAP:
                 while operators and operators[-1] != '(' and operators[-1] in self.OP_MAP:
-                    if self.operator_priority(self, token) <= self.operator_priority(self, operators[-1]):
+                    if self.operator_priority(token) <= self.operator_priority(operators[-1]):
                         operands.append(operators.pop())
                     else:
                         break
@@ -84,3 +82,11 @@ class Calc():
         elif operator in ("+", "-"):
             return 1
         else: raise ValueError(f"Unsupported unary operator: {operator}")
+
+    def validate_expression(self, exp: str):
+        pattern = r'^(?:\s*-?(?:\d*\.\d+|\d+)\s*|[()+\-*/]\s*)+$'
+
+        if re.fullmatch(pattern, exp) == False:
+            raise ValueError(f"Invalid symbol in expression")
+        elif self.is_valid_parentheses(exp) == False:
+            raise ValueError("Invalid parentheses in expression")
